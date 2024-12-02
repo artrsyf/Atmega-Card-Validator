@@ -1,4 +1,1 @@
-require("handlers")
-
-print("Starting HTTP requests...")
-handleRfidCardOperation()
+-- Emty for a while

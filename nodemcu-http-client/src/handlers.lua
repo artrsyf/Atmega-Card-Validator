@@ -1,15 +1,15 @@
 require("config")
 
-function handleRfidCardInfo(card_id)
+function handleRfidCardInfo(card_id, callback)
     local http = require("http")
 
     local url = CONFIG.PROTOCOL .. CONFIG.HOST .. "/transaction-api/card/" .. card_id
 
     http.get(url, nil, function(code, data)
         if (code < 0) then
-            print("HTTP GET request failed")
+            callback(nil, "HTTP GET request failed")
         else
-            print("HTTP GET response: ", data)
+            callback(data, nil)
         end
     end)
 end
@@ -30,10 +30,10 @@ function handleRfidCardOperation(card_id, operation_type)
 
     http.post(url, headers, body, function(code, data)
         if (code < 0) then
-            print("HTTP POST request failed")
+--            print("HTTP POST request failed")
         else
-            print("HTTP POST response code: ", code)
-            print("HTTP POST response data: ", data)
+--            print("HTTP POST response code: ", code)
+--            print("HTTP POST response data: ", data)
         end
     end)
 end
