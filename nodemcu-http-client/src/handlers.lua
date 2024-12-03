@@ -19,7 +19,7 @@ OPERATION_TYPE = {
     REFILL = 1
 }
 
-function handleRfidCardOperation(card_id, operation_type)
+function handleRfidCardOperation(card_id, operation_type, callback)
     local http = require("http")
 
     local url = CONFIG.PROTOCOL .. CONFIG.HOST .. "/transaction-api/card/" .. card_id
@@ -30,10 +30,9 @@ function handleRfidCardOperation(card_id, operation_type)
 
     http.post(url, headers, body, function(code, data)
         if (code < 0) then
---            print("HTTP POST request failed")
+            callback(nil, "HTTP POST request failed")
         else
---            print("HTTP POST response code: ", code)
---            print("HTTP POST response data: ", data)
+            callback(data, nil)
         end
     end)
 end

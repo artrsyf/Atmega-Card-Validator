@@ -38,7 +38,13 @@ end
 
 uart.on("data", "\n",
     function(data)
-        local card_id = string.gsub(data, "\n", "")
+        local cleaned_data  = string.gsub(data, "\n", "")
+
+        local parts = {}
+        for part in string.gmatch(cleaned_data, "([^#]+)") do
+            table.insert(parts, part)
+        end
+        
         handleRfidCardInfo(card_id, function(response, error)
             if error then
                 uart_send_string("Error fetching data\n")
@@ -46,4 +52,55 @@ uart.on("data", "\n",
                 uart_send_string("Data: " .. response .. "\n")
             end
         end)
+end, 0)
+
+uart.on("data", "\n", function(data)
+    -- Убираем символ новой строки, если он присутствует
+    local cleaned_data = string.gsub(data, "\n", "")
+    
+    -- Разделяем строку по символу #
+    local parts = {}
+    for part in string.gmatch(cleaned_data, "([^#]+)") do
+        table.insert(parts, part)
+    end
+    
+    -- Обработка в зависимости от типа запроса
+    if parts[1] == "POST" then
+        -- Если запрос POST: ожидаем номер операции и id карты
+        if #parts == 3 then
+            local operation = tonumber(parts[2])  -- Номер операции
+            local card_id = parts[3]               -- ID карты
+            if operation == 0 or operation == 1 then
+                handleRfidCardOperation(card_id, operation, function(response, error)
+                    if error then
+                        uart_send_string("Error fetching data\n")
+                    else
+                        uart_send_string("Data: " .. response .. "\n")
+                    end
+                end)
+            else
+                uart_send_string("Invalid operation\n")
+            end
+        else
+            uart_send_string("Invalid POST format\n")
+        end
+
+    elseif parts[1] == "GET" then
+        -- Если запрос GET: ожидаем только id карты
+        if #parts == 2 then
+            local card_id = parts[2]  -- ID карты
+            handleRfidCardInfo(card_id, function(response, error)
+                if error then
+                    uart_send_string("Error fetching data\n")
+                else
+                    uart_send_string("Data: " .. response .. "\n")
+                end
+            end)
+        else
+            uart_send_string("Invalid GET format\n")
+        end
+
+    else
+        uart_send_string("Invalid request type: ", cleaned_data .. "\n")
+    end
 end, 0)
